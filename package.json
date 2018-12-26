@@ -1,0 +1,23 @@
+{
+  "name": "simple-td",
+  "version": "0.0.1",
+  "description": "A simple tower defense game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akleemans/simple-td.git"
+  },
+  "author": "Adrianus Kleemans",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akleemans/simple-td/issues"
+  },
+  "homepage": "https://github.com/akleemans/simple-td#readme",
+  "dependencies": {
+    "http-server": "^0.11.1",
+    "phaser": "^3.15.1"
+  }
+}
