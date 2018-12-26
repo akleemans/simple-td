@@ -26,6 +26,7 @@ var MainMenuScene = new Phaser.Class({
 
     this.load.image('tower-simple', 'assets/img/tower.png');
 
+    this.load.image('bullet', 'assets/img/bullet.png', {frameWidth: 7, frameHeight: 7});
     this.load.spritesheet('enemy', 'assets/img/invader.png', {frameWidth: 32, frameHeight: 32});
 
   },
