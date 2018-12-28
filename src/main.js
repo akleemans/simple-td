@@ -1,9 +1,9 @@
 var config = {
   type: Phaser.CANVAS, // CANVAS | WEBGL
-  width: 600,
-  height: 400,
+  width: 576,
+  height: 384,
   pixelArt: true,
-  backgroundColor: '#404040', // or: 4488AA
+  backgroundColor: '#fff', // or: 4488AA
   physics: {
     default: 'arcade',
     arcade: {

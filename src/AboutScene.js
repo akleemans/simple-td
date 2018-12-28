@@ -9,8 +9,8 @@ var AboutScene = new Phaser.Class({
   },
 
   create: function () {
-    this.add.text(40, 40, 'About', {fontFamily: 'Helvetica', fontSize: 32, color: '#dddddd'});
-    this.add.text(40, 100, 'TBD', {fontFamily: 'Arial', fontSize: 16, color: '#ffffff'});
+    this.add.text(40, 40, 'About', {fontFamily: 'Helvetica', fontSize: 32, color: '#333'});
+    this.add.text(40, 100, 'TBD', {fontFamily: 'Arial', fontSize: 16, color: '#333'});
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.backTimer = 0;
