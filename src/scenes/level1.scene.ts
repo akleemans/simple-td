@@ -1,6 +1,7 @@
-import Sprite = Phaser.GameObjects.Sprite;
-import {Enemy} from "../objects/Enemy";
+import {Enemy, EnemyType} from "../objects/Enemy";
 import Group = Phaser.Physics.Arcade.Group;
+import {Bullet} from "../objects/Bullet";
+import {Util} from "../util";
 
 export class Level1Scene extends Phaser.Scene {
     private gridSize = 32;
@@ -20,6 +21,28 @@ export class Level1Scene extends Phaser.Scene {
         'X...............XX',
         'XXXXXXXXXXXXXXXXXX'
     ];
+
+    private waves = [
+        'A',
+        'A---A',
+        'A---A---A',
+        'A---A---A---A',
+        'A--A--A--A--A--A',
+        'B',
+        'A--B--A',
+        'A--A--A--B--A--A--A',
+        'B-------B',
+        'A--A--A--B--A--A--A--B'
+    ];
+
+    private enemyMap = {
+        'A': EnemyType.simple,
+        'B': EnemyType.boss
+    };
+
+    private waveRunning: boolean = false;
+    private waveTick: number = 0;
+    private tickLength: number = 20;
 
     // HUD
     private health = 10;
@@ -47,7 +70,7 @@ export class Level1Scene extends Phaser.Scene {
 
     create(): void {
         // draw level background
-        let background = this.add.image(this.gridX / 2, this.gridY / 2, 'level1');
+        this.add.image(this.gridX / 2, this.gridY / 2, 'level1');
 
         // init health, money
         this.add.image(340, 25, 'health');
@@ -99,30 +122,36 @@ export class Level1Scene extends Phaser.Scene {
         // tower placing
         this.input.on('pointerdown', (pointer) => {
             if (this.activeTower == null) {
-                console.log('Cant place tower, no tower selected!');
+                Util.log('Cant place tower, no tower selected!');
             } else if (!this.inGridBoundaries(pointer.x, pointer.y)) {
-                console.log('Cant place tower, not in boundaries!');
+                Util.log('Cant place tower, not in boundaries!');
             } else {
-                console.log('Placing tower!');
+                Util.log('Placing tower!');
                 this.placeTower(pointer.x, pointer.y, this.activeTower);
+
             }
         }, this);
 
+        this.prepareAnimations();
 
-        // enemy
-        let enemy = new Enemy(this, -50, this.gridSize * 8.5, 0.5, 30, 5);
-        this.enemyGroup.add(enemy);
+        this.triggerNextWave();
 
         // collision detection
-        this.physics.add.collider(this.bulletGroup, this.enemyGroup, this.hitEnemy);
+        this.physics.add.collider(this.bulletGroup, this.enemyGroup, this.hitEnemy, null, this);
     }
 
     update(time, delta): void {
-        // move
+        // release enemies if wave running
+        if (this.waveRunning) {
+            this.releaseEnemy();
+        }
+        // move enemies & bullets
         this.enemyGroup.getChildren().forEach((enemy: Enemy) => {
             enemy.move();
         });
-        this.moveBullets();
+        this.bulletGroup.getChildren().forEach((bullet: Bullet) => {
+            bullet.move();
+        });
 
         // fire bullets automation
         this.towerGroup.getChildren().forEach((tower) => {
@@ -152,30 +181,39 @@ export class Level1Scene extends Phaser.Scene {
         if (this.grid[coordY][coordX] === '.' && this.money >= towerCost[type]) {
             x = coordX * this.gridSize + this.gridSize / 2;
             y = coordY * this.gridSize + this.gridSize / 2;
+
             let newTower = this.add.sprite(x, y, type);
             newTower.setData('lastFired', 0);
+
             this.towerGroup.add(newTower);
             this.setTowerInGrid(coordX, coordY);
             this.money -= towerCost[type];
-            console.log('Placed tower!');
         } else {
-            console.log('Invalid position.');
+            Util.log('Invalid position.');
         }
     }
 
-    private setTowerInGrid(x, y) {
+    prepareAnimations() {
+        this.anims.create({
+            key: 'enemy1-move',
+            frames: this.anims.generateFrameNumbers('enemy1', {start: 0, end: 3}),
+            frameRate: 5,
+            repeat: -1
+        });
+    }
+
+    setTowerInGrid(x, y) {
         let s = this.grid[y];
         this.grid[y] = s.substr(0, x) + 'T' + s.substr(x + 1);
     }
 
-    private static inRange(tower, enemy) {
+    static inRange(tower, enemy) {
         let distance = Phaser.Math.Distance.Between(tower.x, tower.y, enemy.x, enemy.y);
         return distance <= 50;
     }
 
     fireBullet(tower, enemy) {
-        let bullet = this.physics.add.sprite(tower.x, tower.y, 'bullet');
-        bullet.setData({destX: enemy.x, destY: enemy.y, damage: 10}, null);
+        let bullet = new Bullet(this, tower.x, tower.y, 2, 10, enemy);
         this.bulletGroup.add(bullet);
     }
 
@@ -183,31 +221,58 @@ export class Level1Scene extends Phaser.Scene {
         return x > this.gridSize && x < (this.gridX - this.gridSize) && y > this.gridSize && y < (this.gridY - this.gridSize);
     }
 
-    private moveBullets() {
-        let baseSpeed = 2;
-        this.bulletGroup.getChildren().forEach((bullet: Sprite) => {
-            let diffX = Math.abs(bullet.getData('destX') - bullet.x);
-            let diffY = Math.abs(bullet.getData('destY') - bullet.y);
-            let signX = bullet.getData('destX') - bullet.x < 0 ? -1 : 1;
-            let signY = bullet.getData('destY') - bullet.y < 0 ? -1 : 1;
-
-            bullet.x += signX * baseSpeed * diffX / (diffX + diffY);
-            bullet.y += signY * baseSpeed * diffY / (diffX + diffY);
-
-            if (diffX < 5) {
-                bullet.destroy();
-            }
-        });
-    }
-
-    private hitEnemy(bullet, enemy) {
-        enemy.damage(bullet.getData('damage'));
+    hitEnemy(bullet, enemy) {
+        enemy.damage(bullet.damage);
 
         if (enemy.health <= 0) {
+            Util.log('Killing enemy ' + enemy.id);
             this.money += enemy.reward;
             enemy.destroy();
+
+            if (this.enemyGroup.getChildren().length === 0 && this.waveRunning === false) {
+                this.triggerNextWave();
+            }
         }
 
         bullet.destroy();
+    }
+
+    triggerNextWave() {
+        this.wave += 1;
+        Util.log('Triggering next wave:' + this.wave);
+        this.waveTick = 0;
+        this.waveRunning = true;
+
+        if (this.wave === this.waves.length) {
+            this.finish();
+        }
+    }
+
+    releaseEnemy() {
+        this.waveTick += 1;
+        if (this.waveTick % this.tickLength === 0) {
+            const waveString = this.waves[this.wave - 1];
+            const enemyChar = waveString[(this.waveTick / this.tickLength) - 1];
+
+            if (enemyChar === '-') {
+                return;
+            }
+            const enemyType = this.enemyMap[enemyChar];
+
+            // create enemy
+            Util.log('Releasing enemy:' + enemyType);
+            let enemy = new Enemy(this, -50, this.gridSize * 8.5, enemyType);
+            this.enemyGroup.add(enemy);
+
+            // if last char in waveString
+            if (this.waveTick / this.tickLength >= waveString.length) {
+                this.waveRunning = false;
+            }
+        }
+    }
+
+
+    finish() {
+        Util.log('finish!');
     }
 }

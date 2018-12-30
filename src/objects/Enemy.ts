@@ -2,6 +2,11 @@ import Sprite = Phaser.GameObjects.Sprite;
 import Scene = Phaser.Scene;
 import Image = Phaser.GameObjects.Image;
 
+export enum EnemyType {
+    simple = 'enemy1',
+    boss = 'enemy2'
+}
+
 export class Enemy extends Sprite {
     private currentScene: Phaser.Scene;
     health: number;
@@ -13,15 +18,24 @@ export class Enemy extends Sprite {
     backgroundBar: Image;
     healthBar: Image;
 
-    constructor(scene: Scene, x: number, y: number, speed: number, health: number, reward: number) {
-        super(scene, x, y, 'enemy1');
+    constructor(scene: Scene, x: number, y: number, type: EnemyType) {
+        super(scene, x, y, type);
+
+        if (type === EnemyType.simple) {
+            this.speed = 0.5;
+            this.health = 30;
+            this.maxHealth = 30;
+            this.reward = 5;
+        } else if (type === EnemyType.boss) {
+            this.speed = 0.2;
+            this.health = 300;
+            this.maxHealth = 300;
+            this.reward = 30;
+        }
+
         this.currentScene = scene;
-        this.health = health;
-        this.maxHealth = health;
-        this.speed = speed;
-        this.reward = reward;
         this.currentScene.add.existing(this);
-        this.prepareAnimations();
+        this.anims.play('enemy1-move', true);
 
         // health bar
         this.backgroundBar = this.currentScene.add.image(x - 10, y - 16, 'healthbar-red').setOrigin(0, 0.5);
@@ -29,16 +43,6 @@ export class Enemy extends Sprite {
 
         this.healthBar = this.currentScene.add.image(x - 10, y - 16, 'healthbar-green').setOrigin(0, 0.5);
         this.healthBar.displayWidth = this.calculateHealthBarSize();
-    }
-
-    prepareAnimations() {
-        this.currentScene.anims.create({
-            key: 'enemy1-move',
-            frames: this.currentScene.anims.generateFrameNumbers('enemy1', {start: 0, end: 3}),
-            frameRate: 5,
-            repeat: -1
-        });
-        this.anims.play('enemy1-move', true);
     }
 
     calculateHealthBarSize() {
