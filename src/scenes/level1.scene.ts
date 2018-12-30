@@ -200,6 +200,14 @@ export class Level1Scene extends Phaser.Scene {
             frameRate: 5,
             repeat: -1
         });
+
+        this.anims.create({
+            key: 'enemy2-move',
+            frames: this.anims.generateFrameNumbers('enemy2', {start: 0, end: 3}),
+            frameRate: 5,
+            repeat: -1
+        });
+
     }
 
     setTowerInGrid(x, y) {
@@ -270,7 +278,6 @@ export class Level1Scene extends Phaser.Scene {
             }
         }
     }
-
 
     finish() {
         Util.log('finish!');

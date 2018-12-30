@@ -20,9 +20,9 @@ export class MainScene extends Phaser.Scene {
         this.load.image('bullet', 'assets/img/bullet.png');
 
         this.load.spritesheet('enemy1', 'assets/img/enemy1.png', {frameWidth: 32, frameHeight: 32});
+        this.load.spritesheet('enemy2', 'assets/img/enemy2.png', {frameWidth: 32, frameHeight: 32});
         this.load.image('healthbar-green', 'assets/img/healthbar-green.png');
         this.load.image('healthbar-red', 'assets/img/healthbar-red.png');
-        this.load.spritesheet('enemy2', 'assets/img/enemy2.png', {frameWidth: 32, frameHeight: 32});
 
         this.load.spritesheet('button-tower1', 'assets/img/button-tower1.png', {frameWidth: 46, frameHeight: 46});
         this.load.spritesheet('button-tower2', 'assets/img/button-tower2.png', {frameWidth: 46, frameHeight: 46});

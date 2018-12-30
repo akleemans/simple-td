@@ -23,19 +23,19 @@ export class Enemy extends Sprite {
 
         if (type === EnemyType.simple) {
             this.speed = 0.5;
-            this.health = 30;
-            this.maxHealth = 30;
-            this.reward = 5;
+            this.health = 50;
+            this.maxHealth = 50;
+            this.reward = 3;
         } else if (type === EnemyType.boss) {
             this.speed = 0.2;
             this.health = 300;
             this.maxHealth = 300;
-            this.reward = 30;
+            this.reward = 20;
         }
 
         this.currentScene = scene;
         this.currentScene.add.existing(this);
-        this.anims.play('enemy1-move', true);
+        this.anims.play(type + '-move', true);
 
         // health bar
         this.backgroundBar = this.currentScene.add.image(x - 10, y - 16, 'healthbar-red').setOrigin(0, 0.5);
