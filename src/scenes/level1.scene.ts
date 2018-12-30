@@ -18,7 +18,7 @@ export class Level1Scene extends Phaser.Scene {
         'X...P..P.....P..XX',
         'XPPPP..P.....P..XX',
         'X......PPPPPPP..XX',
-        'X...............XX',
+        'X..............XXX',
         'XXXXXXXXXXXXXXXXXX'
     ];
 
