@@ -4,7 +4,7 @@ export enum LogLevel {
     error = 2
 }
 
-export class Util  {
+export class Util {
     static globalLogLevel = 0;
 
     static log(text: string, logLevel = LogLevel.debug) {
@@ -12,4 +12,9 @@ export class Util  {
             console.log(text);
         }
     }
+
+    static equals(a: number, b: number) {
+        return Math.abs(a - b) < 2;
+    }
+
 }

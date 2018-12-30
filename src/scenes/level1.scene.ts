@@ -3,6 +3,10 @@ import Group = Phaser.Physics.Arcade.Group;
 import {Bullet} from "../objects/Bullet";
 import {Util} from "../util";
 
+export enum Direction {
+    right, left, up, down
+}
+
 export class Level1Scene extends Phaser.Scene {
     private gridSize = 32;
     private gridX = 18 * this.gridSize;
@@ -11,16 +15,40 @@ export class Level1Scene extends Phaser.Scene {
         'XXXXXXXXXXXXXXXXXX',
         'XX...........XXXXX',
         'XX...............X',
-        'XX..PPPPPPP......X',
-        'XX..P.....P..PPPPZ',
-        'X...P.....P..P...X',
-        'X...P..PPPP..P...X',
-        'X...P..P.....P..XX',
-        'XPPPP..P.....P..XX',
-        'X......PPPPPPP..XX',
+        'XX..1222222......X',
+        'XX..1.....3..7888Z',
+        'X...1.....3..7...X',
+        'X...1..4443..7...X',
+        'X...1..5.....7..XX',
+        'S0000..5.....7..XX',
+        'X......5666666..XX',
         'X..............XXX',
         'XXXXXXXXXXXXXXXXXX'
     ];
+    private pathSegmentDirections = {
+        0: Direction.right,
+        1: Direction.up,
+        2: Direction.right,
+        3: Direction.down,
+        4: Direction.left,
+        5: Direction.down,
+        6: Direction.right,
+        7: Direction.up,
+        8: Direction.right
+    };
+    private pathSegmentDestinations = {
+        0: [4, 8],
+        1: [4, 3],
+        2: [10, 3],
+        3: [10, 6],
+        4: [7, 6],
+        5: [7, 9],
+        6: [13, 9],
+        7: [13, 4],
+        8: [17, 4]
+    };
+    private lastPathSegment = 8;
+    private directionMap = new Map<Direction, number[]>();
 
     private waves = [
         'A',
@@ -132,8 +160,13 @@ export class Level1Scene extends Phaser.Scene {
             }
         }, this);
 
-        this.prepareAnimations();
+        // update direction map
+        this.directionMap.set(Direction.down, [0, 1]);
+        this.directionMap.set(Direction.up, [0, -1]);
+        this.directionMap.set(Direction.right, [1, 0]);
+        this.directionMap.set(Direction.left, [-1, 0]);
 
+        this.prepareAnimations();
         this.triggerNextWave();
 
         // collision detection
@@ -237,15 +270,19 @@ export class Level1Scene extends Phaser.Scene {
             this.money += enemy.reward;
             enemy.destroy();
 
-            if (this.enemyGroup.getChildren().length === 0 && this.waveRunning === false) {
-                this.triggerNextWave();
-            }
+            this.checkTriggerNextWave();
         }
 
         bullet.destroy();
     }
 
-    triggerNextWave() {
+    checkTriggerNextWave(): void {
+        if (this.enemyGroup.getChildren().length === 0 && this.waveRunning === false) {
+            this.triggerNextWave();
+        }
+    }
+
+    triggerNextWave(): void {
         this.wave += 1;
         Util.log('Triggering next wave:' + this.wave);
         this.waveTick = 0;
@@ -279,7 +316,42 @@ export class Level1Scene extends Phaser.Scene {
         }
     }
 
+    getPathDirection(enemy: Enemy): number[] {
+        let direction = this.pathSegmentDirections[enemy.pathSegment];
+        let directionCoords = this.directionMap.get(direction);
+
+        // check if reached segment destination
+        let segmentDestination = this.pathSegmentDestinations[enemy.pathSegment];
+        let targetX = (segmentDestination[0] + 0.5) * this.gridSize;
+        let targetY = (segmentDestination[1] + 0.5) * this.gridSize;
+
+        if (Util.equals(enemy.x, targetX) && Util.equals(enemy.y, targetY)) {
+            enemy.pathSegment += 1;
+            if (enemy.pathSegment > this.lastPathSegment) {
+                // enemy made it through
+                enemy.destroy();
+                this.reduceHealth(1);
+                this.checkTriggerNextWave();
+            }
+        }
+
+        return directionCoords;
+    }
+
+    reduceHealth(amount: number) {
+        this.health -= amount;
+
+        if (this.health <= 0) {
+            this.finish();
+        }
+    }
+
     finish() {
-        Util.log('finish!');
+        if (this.health > 0) {
+            Util.log('You win!');
+        } else {
+            Util.log('You loose :(');
+        }
+
     }
 }

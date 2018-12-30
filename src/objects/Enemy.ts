@@ -1,6 +1,6 @@
 import Sprite = Phaser.GameObjects.Sprite;
-import Scene = Phaser.Scene;
 import Image = Phaser.GameObjects.Image;
+import {Level1Scene} from "../scenes/level1.scene";
 
 export enum EnemyType {
     simple = 'enemy1',
@@ -8,18 +8,20 @@ export enum EnemyType {
 }
 
 export class Enemy extends Sprite {
-    private currentScene: Phaser.Scene;
+    private currentScene: Level1Scene;
     health: number;
     maxHealth: number;
     speed: number;
     reward: number;
+    pathSegment: number;
 
     healthBarSize: number = 20;
     backgroundBar: Image;
     healthBar: Image;
 
-    constructor(scene: Scene, x: number, y: number, type: EnemyType) {
+    constructor(scene: Level1Scene, x: number, y: number, type: EnemyType) {
         super(scene, x, y, type);
+        // super.setOrigin(0.5, 0.5);
 
         if (type === EnemyType.simple) {
             this.speed = 0.5;
@@ -27,12 +29,13 @@ export class Enemy extends Sprite {
             this.maxHealth = 50;
             this.reward = 3;
         } else if (type === EnemyType.boss) {
-            this.speed = 0.2;
+            this.speed = 0.3;
             this.health = 300;
             this.maxHealth = 300;
             this.reward = 20;
         }
 
+        this.pathSegment = 0;
         this.currentScene = scene;
         this.currentScene.add.existing(this);
         this.anims.play(type + '-move', true);
@@ -50,14 +53,13 @@ export class Enemy extends Sprite {
     }
 
     move() {
-        this.x += this.speed;
-        this.backgroundBar.x += this.speed;
-        this.healthBar.x += this.speed;
-
-        // TODO replace
-        if (this.x > 650) {
-            this.x = -50;
-        }
+        let direction = this.currentScene.getPathDirection(this);
+        this.x += this.speed * direction[0];
+        this.y += this.speed * direction[1];
+        this.backgroundBar.x += this.speed * direction[0];
+        this.backgroundBar.y += this.speed * direction[1];
+        this.healthBar.x += this.speed * direction[0];
+        this.healthBar.y += this.speed * direction[1];
     }
 
     damage(amount: number) {
