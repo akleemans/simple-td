@@ -286,10 +286,11 @@ export class Level1Scene extends Phaser.Scene {
         this.wave += 1;
         Util.log('Triggering next wave:' + this.wave);
         this.waveTick = 0;
-        this.waveRunning = true;
 
-        if (this.wave === this.waves.length) {
+        if (this.wave - 1 === this.waves.length) {
             this.finish();
+        } else {
+            this.waveRunning = true;
         }
     }
 
@@ -347,11 +348,13 @@ export class Level1Scene extends Phaser.Scene {
     }
 
     finish() {
+        let text;
         if (this.health > 0) {
-            Util.log('You win!');
+            text = 'You win!';
         } else {
-            Util.log('You loose :(');
+            text = 'You loose :(';
         }
+        this.add.text(200, 200, text, {fontFamily: 'Arial', fontSize: 32, color: '#333'});
 
     }
 }
