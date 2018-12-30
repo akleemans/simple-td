@@ -1,5 +1,15 @@
+# OSX
+#----
+.DS_STORE
+
+# General
+#--------
+build
+node_modules
+*.tsx
+
+# IntelliJ
+#--------
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
-node_modules/
-ideen/

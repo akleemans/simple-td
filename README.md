@@ -11,6 +11,6 @@ To install dependencies (Phaser 3 etc.) run
 
 For running the game locally, you can use
 
-    npm start
+    npm run dev
 
-which will start the npm `http-server`. Simple as that!
+which will start the game. Simple as that!
